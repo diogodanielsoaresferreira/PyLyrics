@@ -41,7 +41,7 @@ class PyLyrics:
 	@staticmethod
 	def getAlbums(singer):
 		singer = singer.replace(' ', '_')
-		s = BeautifulSoup(requests.get('http://lyrics.wikia.com/{0}'.format(singer)).text)
+		s = BeautifulSoup(requests.get('http://lyrics.wikia.com/{0}'.format(singer)).text, "html.parser")
 		spans = s.findAll('span',{'class':'mw-headline'})
 		
 		als = []
@@ -57,10 +57,21 @@ class PyLyrics:
 			raise ValueError("Unknown Artist Name given")
 			return None
 		return als
-	@staticmethod 
+
+	@staticmethod
+	def saveAlbums(singer):
+		f = open(singer+" albums.txt", 'w')
+		albums=PyLyrics.getAlbums(singer)
+		f.write(singer+" albums\n\n")
+		for line in albums:
+			f.write(line.name+" "+line.year+"\n")
+		f.close()
+
+
+	@staticmethod
 	def getTracks(album):
 		url = "http://lyrics.wikia.com/api.php?artist={0}&fmt=xml".format(album.artist())
-		soup = BeautifulSoup(requests.get(url).text)
+		soup = BeautifulSoup(requests.get(url).text, "html.parser")
 
 		for al in soup.find_all('album'):
 			if al.text.lower().strip() == album.name.strip().lower():
@@ -69,13 +80,23 @@ class PyLyrics:
 		songs =[Track(song.text,album,album.artist()) for song in currentAlbum.findNext('songs').findAll('item')]
 		return songs
 
+	# Not Tested!
+	@staticmethod
+	def saveTracks(album):
+		f = open(album.name+" tracks.txt", 'w')
+		tracks=PyLyrics.getTracks(album)
+		f.write(album+" tracks\n\n")
+		for line in tracks:
+			f.write(line)
+		f.close()
+
 	@staticmethod
 	def getLyrics(singer, song):
 		#Replace spaces with _
 		singer = singer.replace(' ', '_')
 		song = song.replace(' ', '_')
 		r = requests.get('http://lyrics.wikia.com/{0}:{1}'.format(singer,song))
-		s = BeautifulSoup(r.text)
+		s = BeautifulSoup(r.text, "html.parser")
 		#Get main lyrics holder
 		lyrics = s.find("div",{'class':'lyricbox'})
 		if lyrics is None:
@@ -98,6 +119,15 @@ class PyLyrics:
 			return output
 		except:
 			return output.encode('utf-8')
+
+	@staticmethod
+	def saveLyrics(singer, song):
+		f = open(singer+'-'+song+'.txt', 'w')
+		lyrics=PyLyrics.getLyrics(singer,song)
+		f.write(singer+"-"+song+"\n\n")
+		for line in lyrics:
+			f.write(line)
+		f.close()
 
 def main():
 	albums = PyLyrics.getAlbums('OneRepublic')
