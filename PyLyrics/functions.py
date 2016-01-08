@@ -70,24 +70,23 @@ class PyLyrics:
 
 	@staticmethod
 	def getTracks(album):
-		url = "http://lyrics.wikia.com/api.php?artist={0}&fmt=xml".format(album.artist())
-		soup = BeautifulSoup(requests.get(url).text, "html.parser")
 
-		for al in soup.find_all('album'):
-			if al.text.lower().strip() == album.name.strip().lower():
-				currentAlbum = al
-				break
-		songs =[Track(song.text,album,album.artist()) for song in currentAlbum.findNext('songs').findAll('item')]
-		return songs
+		soup = BeautifulSoup(requests.get(album.url).text, "html.parser")
+		albumtracks=soup.ol.getText().split('\n')
+		allt=[]
 
-	# Not Tested!
+		for t in albumtracks:
+			allt.append(Track(t[1:], album, album.singer))
+
+		return allt
+
 	@staticmethod
 	def saveTracks(album):
 		f = open(album.name+" tracks.txt", 'w')
 		tracks=PyLyrics.getTracks(album)
-		f.write(album+" tracks\n\n")
+		f.write(album.name+" tracks\n\n")
 		for line in tracks:
-			f.write(line)
+			f.write(line.name+"\n")
 		f.close()
 
 	@staticmethod
@@ -134,7 +133,7 @@ def main():
 	print (albums)
 	tracks = PyLyrics.getTracks(albums[-1])
 	print (tracks[7].getLyrics())
-	
+
 
 if __name__=='__main__':
 	main()
