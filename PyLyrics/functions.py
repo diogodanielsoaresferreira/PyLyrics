@@ -76,6 +76,8 @@ class PyLyrics:
 		allt=[]
 
 		for t in albumtracks:
+			if t=="":
+				break
 			allt.append(Track(t[1:], album, album.singer))
 
 		return allt
